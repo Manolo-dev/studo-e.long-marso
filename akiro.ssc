@@ -1,0 +1,82 @@
+include("i18n.inc");
+
+// ========================================
+// INICIALIGO DE LA SKRIPT
+// ========================================
+
+var initialJD = core.getJDay();
+
+core.setTimeRate(1);
+
+// ========================================
+// KONFIGURADO DE ANALIZAJ PARAMETROJ
+// ========================================
+
+var start = 1730192;
+var end = 2460677;
+var dayIncrement = 1;
+
+core.setJDay(start - 2);
+
+// ========================================
+// INICIALIGO DE KALKULAJ VARIABLOJ
+// ========================================
+
+var julianDays = [];
+var eclipticLongitudes = [];
+var velocities = [];
+
+var previousRawLongitude = 0;
+var currentRawLongitude = 0;
+var accumulatedLongitude = 0;
+var velocity = 0;
+
+var deltaLong = 0;
+
+var mars = core.selectObjectByName("Mars");
+
+// ========================================
+// ĈEFA ANALIZA BUKLO
+// ========================================
+
+for(var i = 0; i < end - start + 3; i += dayIncrement) {
+    var currentJD = core.getJDay();
+    currentRawLongitude = core.getSelectedObjectInfo()["elong"];
+    deltaLong = currentRawLongitude - previousRawLongitude;
+    
+    if(deltaLong > 180) {
+        deltaLong -= 360;
+    } else if(deltaLong < -180) {
+        deltaLong += 360;
+    }
+    
+    accumulatedLongitude += deltaLong;
+    velocity = deltaLong / dayIncrement;
+    
+    julianDays.push(currentJD);
+    eclipticLongitudes.push(accumulatedLongitude);
+    velocities.push(velocity);
+    
+    previousRawLongitude = currentRawLongitude;
+    
+    core.setJDay(currentJD + dayIncrement);
+}
+
+// ========================================
+// MONTRADO
+// ========================================
+
+var output = "";
+
+for(var i = 2; i < end - start + 3; i += dayIncrement) {
+    output += julianDays[i] + ", " + eclipticLongitudes[i].toFixed(4) + ", " + velocities[i].toFixed(4) + "\n";
+}
+
+core.resetOutput();
+core.output(output);
+
+// ========================================
+// PURIGO KAJ RESTAURADO
+// ========================================
+
+core.setJDay(initialJD);
